@@ -1,1 +1,1 @@
-# face-mimic-app
+# facebook-mimic-app
