@@ -62,7 +62,3 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-exports.test = async (req, res) => {
-  res.status(200).json({ message: "tested succesfully" });
-};
