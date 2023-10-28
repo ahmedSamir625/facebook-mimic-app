@@ -3,28 +3,47 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 exports.register = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, username, password, name, birthdate, gender, phone, country } = req.body;
 
   try {
+    // Check if the user already exists
+    const existingEmail = await User.findOne({ email });
+
+    if (existingEmail) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new User({ username, password: hashedPassword });
-    await user.save();
+    // Create a new user
+    const newUser = new User({
+      email,
+      username,
+      password: hashedPassword,
+      name,
+      birthdate,
+      gender,
+      phone,
+      country,
+    });
 
-    const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET);
+    // Save the user to the database
+    await newUser.save();
 
-    res.status(201).json({ message: "User registered successfully", token });
+    // Respond with a success message
+    res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("Error registering user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -35,7 +54,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET);
+    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET);
 
     res.status(200).json({ message: "Login successful", token });
   } catch (error) {
